@@ -1,5 +1,12 @@
 import { useState } from 'react';
-import { CalendarDays, Building2, User, FileText, Wallet } from 'lucide-react';
+import {
+  CalendarDays,
+  Building2,
+  User,
+  FileText,
+  Wallet,
+  Plus,
+} from 'lucide-react';
 import {
   formatNumberID,
   parseRupiahInput,
@@ -29,20 +36,28 @@ const buildInitial = (initial) =>
         note: '',
       };
 
-export default function DebtForm({ open, onClose, onSubmit, initial }) {
+export default function DebtForm({
+  open,
+  onClose,
+  onSubmit,
+  onAddAnother,
+  initial,
+}) {
   if (!open) return null;
   return (
     <DebtFormInner
-      key={initial?.id || 'new'}
+      key={initial?.id || (initial?.isPrefill ? `prefill-${initial.name}` : 'new')}
       open={open}
       onClose={onClose}
       onSubmit={onSubmit}
+      onAddAnother={onAddAnother}
       initial={initial}
     />
   );
 }
 
-function DebtFormInner({ open, onClose, onSubmit, initial }) {
+function DebtFormInner({ open, onClose, onSubmit, onAddAnother, initial }) {
+  const isEdit = !!initial && !initial.isPrefill;
   const [form, setForm] = useState(() => buildInitial(initial));
   const [errors, setErrors] = useState({});
 
@@ -82,14 +97,28 @@ function DebtFormInner({ open, onClose, onSubmit, initial }) {
       open={open}
       onClose={onClose}
       size="md"
-      title={initial ? 'Edit Hutang' : 'Tambah Hutang'}
+      title={isEdit ? 'Edit Hutang' : 'Tambah Hutang'}
       description={
-        initial
+        isEdit
           ? 'Perbarui detail hutang sesuai kebutuhan.'
-          : 'Catat hutang baru untuk dipantau di dashboard.'
+          : initial?.isPrefill
+            ? `Catat hutang baru untuk ${initial.name}.`
+            : 'Catat hutang baru untuk dipantau di dashboard.'
       }
       footer={
         <>
+          {isEdit && onAddAnother && (
+            <button
+              type="button"
+              onClick={() => onAddAnother(initial)}
+              className="btn-secondary mr-auto"
+              title={`Tambah hutang lain untuk ${initial.name}`}
+            >
+              <Plus className="h-4 w-4" />
+              <span className="hidden sm:inline">Tambah Hutang Lagi</span>
+              <span className="sm:hidden">Tambah Lagi</span>
+            </button>
+          )}
           <button type="button" onClick={onClose} className="btn-secondary">
             Batal
           </button>
@@ -98,7 +127,7 @@ function DebtFormInner({ open, onClose, onSubmit, initial }) {
             onClick={handleSubmit}
             className="btn-primary"
           >
-            {initial ? 'Simpan Perubahan' : 'Tambah Hutang'}
+            {isEdit ? 'Simpan Perubahan' : 'Tambah Hutang'}
           </button>
         </>
       }
