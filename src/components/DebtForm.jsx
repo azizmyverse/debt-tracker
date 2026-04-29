@@ -8,11 +8,13 @@ import {
 import { BANKS } from '../data/seed.js';
 import Modal from './ui/Modal.jsx';
 
+const DEFAULT_BANK = BANKS[0];
+
 const buildInitial = (initial) =>
   initial
     ? {
         name: initial.name || '',
-        bank: initial.bank || 'BCA',
+        bank: initial.bank || DEFAULT_BANK,
         amount: initial.amount ? formatNumberID(initial.amount) : '',
         dueDate: initial.dueDate || isoToday(),
         status: initial.status || 'belum',
@@ -20,7 +22,7 @@ const buildInitial = (initial) =>
       }
     : {
         name: '',
-        bank: 'BCA',
+        bank: DEFAULT_BANK,
         amount: '',
         dueDate: isoToday(),
         status: 'belum',

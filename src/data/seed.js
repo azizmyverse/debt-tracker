@@ -13,11 +13,19 @@ const offsetMonthIso = (m, day = 15) => {
 let counter = 1;
 const id = () => `seed-${counter++}`;
 
+export const BANKS = [
+  'Allobank',
+  'Kredivo',
+  'Superbank',
+  'Bank Jago',
+  'Akulaku',
+];
+
 export const SEED_DEBTS = [
   {
     id: id(),
     name: 'Andi Wijaya',
-    bank: 'BCA',
+    bank: 'Allobank',
     amount: 12_500_000,
     dueDate: offsetIso(7),
     status: 'belum',
@@ -27,7 +35,7 @@ export const SEED_DEBTS = [
   {
     id: id(),
     name: 'Siti Rahma',
-    bank: 'Mandiri',
+    bank: 'Kredivo',
     amount: 4_750_000,
     dueDate: offsetIso(-3),
     status: 'belum',
@@ -37,7 +45,7 @@ export const SEED_DEBTS = [
   {
     id: id(),
     name: 'Budi Santoso',
-    bank: 'BNI',
+    bank: 'Superbank',
     amount: 8_000_000,
     dueDate: offsetIso(20),
     status: 'lunas',
@@ -47,7 +55,7 @@ export const SEED_DEBTS = [
   {
     id: id(),
     name: 'PT Nusantara Jaya',
-    bank: 'BRI',
+    bank: 'Bank Jago',
     amount: 25_000_000,
     dueDate: offsetIso(45),
     status: 'belum',
@@ -57,7 +65,7 @@ export const SEED_DEBTS = [
   {
     id: id(),
     name: 'Dewi Lestari',
-    bank: 'CIMB Niaga',
+    bank: 'Akulaku',
     amount: 2_300_000,
     dueDate: offsetIso(-12),
     status: 'lunas',
@@ -67,7 +75,7 @@ export const SEED_DEBTS = [
   {
     id: id(),
     name: 'Rian Pratama',
-    bank: 'BTN',
+    bank: 'Bank Jago',
     amount: 6_900_000,
     dueDate: offsetIso(2),
     status: 'belum',
@@ -77,7 +85,7 @@ export const SEED_DEBTS = [
   {
     id: id(),
     name: 'Maya Putri',
-    bank: 'BCA',
+    bank: 'Allobank',
     amount: 1_500_000,
     dueDate: offsetIso(15),
     status: 'belum',
@@ -87,7 +95,7 @@ export const SEED_DEBTS = [
   {
     id: id(),
     name: 'CV Sinar Abadi',
-    bank: 'Mandiri',
+    bank: 'Kredivo',
     amount: 17_250_000,
     dueDate: offsetIso(60),
     status: 'belum',
@@ -97,26 +105,11 @@ export const SEED_DEBTS = [
   {
     id: id(),
     name: 'Toko Berkah',
-    bank: 'BRI',
+    bank: 'Superbank',
     amount: 3_400_000,
     dueDate: offsetIso(-25),
     status: 'lunas',
     note: '',
     createdAt: offsetMonthIso(-5, 10),
   },
-];
-
-export const BANKS = [
-  'BCA',
-  'Mandiri',
-  'BNI',
-  'BRI',
-  'BTN',
-  'CIMB Niaga',
-  'Permata',
-  'Danamon',
-  'BSI',
-  'OCBC NISP',
-  'Maybank',
-  'Lainnya',
 ];
