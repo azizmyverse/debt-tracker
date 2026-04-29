@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Search, Filter } from 'lucide-react';
+import { Plus, Search, Filter, Users, List } from 'lucide-react';
 import PageHeader from '../components/PageHeader.jsx';
 import DebtTable from '../components/DebtTable.jsx';
 import DebtForm from '../components/DebtForm.jsx';
@@ -19,9 +19,26 @@ export default function DataHutang() {
   const [confirm, setConfirm] = useState(null);
   const [query, setQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [grouped, setGrouped] = useState(() => {
+    if (typeof window === 'undefined') return true;
+    const saved = localStorage.getItem('dt_view_mode');
+    return saved ? saved === 'grouped' : true;
+  });
+
+  const toggleGrouped = (next) => {
+    setGrouped(next);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('dt_view_mode', next ? 'grouped' : 'flat');
+    }
+  };
+
+  const openAddForName = (name) => {
+    setEditing({ name, isPrefill: true });
+    setFormOpen(true);
+  };
 
   const handleSubmit = (data) => {
-    if (editing) {
+    if (editing && !editing.isPrefill) {
       updateDebt(editing.id, data);
       toast.success('Hutang diperbarui', `${data.name} berhasil disimpan.`);
     } else {
@@ -106,6 +123,34 @@ export default function DataHutang() {
               active={statusFilter}
               onChange={setStatusFilter}
             />
+            <div className="ml-1 inline-flex items-center rounded-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-800 p-0.5">
+              <button
+                onClick={() => toggleGrouped(true)}
+                title="Group by Nama"
+                className={cn(
+                  'inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-all',
+                  grouped
+                    ? 'bg-brand-600 text-white shadow-soft'
+                    : 'text-ink-600 dark:text-ink-300 hover:bg-ink-50 dark:hover:bg-ink-700'
+                )}
+              >
+                <Users className="h-3.5 w-3.5" />
+                Per Orang
+              </button>
+              <button
+                onClick={() => toggleGrouped(false)}
+                title="Tampilan tabel"
+                className={cn(
+                  'inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-all',
+                  !grouped
+                    ? 'bg-brand-600 text-white shadow-soft'
+                    : 'text-ink-600 dark:text-ink-300 hover:bg-ink-50 dark:hover:bg-ink-700'
+                )}
+              >
+                <List className="h-3.5 w-3.5" />
+                Tabel
+              </button>
+            </div>
           </div>
         </div>
 
@@ -123,12 +168,14 @@ export default function DataHutang() {
               debts={debts}
               query={query}
               statusFilter={statusFilter}
+              grouped={grouped}
               onEdit={(d) => {
                 setEditing(d);
                 setFormOpen(true);
               }}
               onDelete={(d) => setConfirm(d)}
               onToggleStatus={handleToggle}
+              onAddForName={openAddForName}
             />
           )}
         </div>
