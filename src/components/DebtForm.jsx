@@ -33,7 +33,7 @@ export default function DebtForm({ open, onClose, onSubmit, initial }) {
   if (!open) return null;
   return (
     <DebtFormInner
-      key={initial?.id || 'new'}
+      key={initial?.id || (initial?.isPrefill ? `prefill-${initial.name}` : 'new')}
       open={open}
       onClose={onClose}
       onSubmit={onSubmit}
@@ -43,6 +43,7 @@ export default function DebtForm({ open, onClose, onSubmit, initial }) {
 }
 
 function DebtFormInner({ open, onClose, onSubmit, initial }) {
+  const isEdit = !!initial && !initial.isPrefill;
   const [form, setForm] = useState(() => buildInitial(initial));
   const [errors, setErrors] = useState({});
 
@@ -82,11 +83,13 @@ function DebtFormInner({ open, onClose, onSubmit, initial }) {
       open={open}
       onClose={onClose}
       size="md"
-      title={initial ? 'Edit Hutang' : 'Tambah Hutang'}
+      title={isEdit ? 'Edit Hutang' : 'Tambah Hutang'}
       description={
-        initial
+        isEdit
           ? 'Perbarui detail hutang sesuai kebutuhan.'
-          : 'Catat hutang baru untuk dipantau di dashboard.'
+          : initial?.isPrefill
+            ? `Catat hutang baru untuk ${initial.name}.`
+            : 'Catat hutang baru untuk dipantau di dashboard.'
       }
       footer={
         <>
@@ -98,7 +101,7 @@ function DebtFormInner({ open, onClose, onSubmit, initial }) {
             onClick={handleSubmit}
             className="btn-primary"
           >
-            {initial ? 'Simpan Perubahan' : 'Tambah Hutang'}
+            {isEdit ? 'Simpan Perubahan' : 'Tambah Hutang'}
           </button>
         </>
       }
