@@ -37,6 +37,15 @@ export default function DataHutang() {
     setFormOpen(true);
   };
 
+  const handleAddAnother = (sourceDebt) => {
+    setEditing({ name: sourceDebt.name, isPrefill: true });
+    setFormOpen(true);
+    toast.success(
+      'Tambah hutang baru',
+      `Untuk ${sourceDebt.name} — akan masuk ke group yang sama.`
+    );
+  };
+
   const handleSubmit = (data) => {
     if (editing && !editing.isPrefill) {
       updateDebt(editing.id, data);
@@ -188,6 +197,7 @@ export default function DataHutang() {
           setEditing(null);
         }}
         onSubmit={handleSubmit}
+        onAddAnother={handleAddAnother}
         initial={editing}
       />
 
