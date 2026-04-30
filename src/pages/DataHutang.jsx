@@ -8,6 +8,7 @@ import { SkeletonRow } from '../components/ui/Skeleton.jsx';
 import { useDebts } from '../context/DebtsContext.jsx';
 import { useToast } from '../context/ToastContext.jsx';
 import { cn } from '../utils/cn.js';
+import { formatRupiah, formatDateID } from '../utils/format.js';
 
 export default function DataHutang() {
   const { debts, loading, addDebt, updateDebt, deleteDebt, toggleStatus } =
@@ -35,6 +36,39 @@ export default function DataHutang() {
   const openAddForName = (name) => {
     setEditing({ name, isPrefill: true });
     setFormOpen(true);
+  };
+
+  const handleCopyGroup = async (group) => {
+    const lines = group.debts.map(
+      (d) =>
+        `${group.name} | ${formatRupiah(d.amount)} | ${formatDateID(
+          d.dueDate
+        )} ( ${d.bank} )`
+    );
+    const text = lines.join('\n');
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+      } else {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+      }
+      toast.success(
+        'Tersalin',
+        `${group.debts.length} hutang ${group.name} disalin ke clipboard.`
+      );
+    } catch {
+      toast.error(
+        'Gagal menyalin',
+        'Browser menolak akses clipboard. Coba refresh halaman.'
+      );
+    }
   };
 
   const handleAddAnother = (sourceDebt) => {
@@ -185,6 +219,7 @@ export default function DataHutang() {
               onDelete={(d) => setConfirm(d)}
               onToggleStatus={handleToggle}
               onAddForName={openAddForName}
+              onCopyGroup={handleCopyGroup}
             />
           )}
         </div>

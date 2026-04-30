@@ -12,6 +12,7 @@ import {
   ChevronDown,
   Plus,
   Wallet,
+  Copy,
 } from 'lucide-react';
 import { formatRupiah, formatDateID, daysUntil } from '../utils/format.js';
 import { cn } from '../utils/cn.js';
@@ -47,6 +48,7 @@ export default function DebtTable({
   onDelete,
   onToggleStatus,
   onAddForName,
+  onCopyGroup,
   query,
   statusFilter,
   grouped = false,
@@ -95,6 +97,7 @@ export default function DebtTable({
         onDelete={onDelete}
         onToggleStatus={onToggleStatus}
         onAddForName={onAddForName}
+        onCopyGroup={onCopyGroup}
       />
     );
   }
@@ -220,7 +223,14 @@ function FlatTable({ items, onEdit, onDelete, onToggleStatus }) {
   );
 }
 
-function GroupedView({ items, onEdit, onDelete, onToggleStatus, onAddForName }) {
+function GroupedView({
+  items,
+  onEdit,
+  onDelete,
+  onToggleStatus,
+  onAddForName,
+  onCopyGroup,
+}) {
   const [sortKey, setSortKey] = useState('total');
   const [sortDir, setSortDir] = useState('desc');
   const [openMap, setOpenMap] = useState({});
@@ -358,6 +368,7 @@ function GroupedView({ items, onEdit, onDelete, onToggleStatus, onAddForName }) 
             onDelete={onDelete}
             onToggleStatus={onToggleStatus}
             onAddForName={onAddForName}
+            onCopyGroup={onCopyGroup}
           />
         ))}
       </div>
@@ -382,6 +393,7 @@ function Group({
   onDelete,
   onToggleStatus,
   onAddForName,
+  onCopyGroup,
 }) {
   return (
     <div className="rounded-2xl border border-ink-200/70 dark:border-ink-800/70 bg-white dark:bg-ink-900/40 overflow-hidden transition-shadow hover:shadow-soft">
@@ -412,7 +424,7 @@ function Group({
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-3 flex-shrink-0">
+        <div className="flex items-center gap-2 flex-shrink-0">
           <div className="text-right">
             <div className="text-sm font-bold tabular-nums text-ink-900 dark:text-ink-50">
               {formatRupiah(group.total)}
@@ -423,6 +435,27 @@ function Group({
               </div>
             )}
           </div>
+          {onCopyGroup && (
+            <span
+              role="button"
+              tabIndex={0}
+              title={`Copy daftar hutang ${group.name}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                onCopyGroup(group);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onCopyGroup(group);
+                }
+              }}
+              className="rounded-lg p-2 text-ink-500 dark:text-ink-400 hover:bg-brand-50 dark:hover:bg-brand-500/10 hover:text-brand-600 dark:hover:text-brand-300 transition-colors"
+            >
+              <Copy className="h-4 w-4" />
+            </span>
+          )}
           <ChevronDown
             className={cn(
               'h-5 w-5 text-ink-400 transition-transform',
