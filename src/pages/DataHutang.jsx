@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { Plus, Search, Filter, Users, List } from 'lucide-react';
+import { Plus, Search, Filter, Users, List, ClipboardPaste } from 'lucide-react';
 import PageHeader from '../components/PageHeader.jsx';
 import DebtTable from '../components/DebtTable.jsx';
 import DebtForm from '../components/DebtForm.jsx';
+import ImportDebtsModal from '../components/ImportDebtsModal.jsx';
 import ConfirmDialog from '../components/ui/ConfirmDialog.jsx';
 import { SkeletonRow } from '../components/ui/Skeleton.jsx';
 import { useDebts } from '../context/DebtsContext.jsx';
@@ -16,6 +17,7 @@ export default function DataHutang() {
   const toast = useToast();
 
   const [formOpen, setFormOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [confirm, setConfirm] = useState(null);
   const [query, setQuery] = useState('');
@@ -79,6 +81,26 @@ export default function DataHutang() {
     }
   };
 
+  const handleImport = async (items) => {
+    let success = 0;
+    for (const item of items) {
+      try {
+        await addDebt(item);
+        success++;
+      } catch (err) {
+        console.error('Import row failed:', err);
+      }
+    }
+    if (success > 0) {
+      toast.success(
+        `${success} hutang diimport`,
+        success === items.length
+          ? 'Semua entry berhasil ditambahkan.'
+          : `${items.length - success} entry gagal — cek toast error.`
+      );
+    }
+  };
+
   const handleAddAnother = (sourceDebt) => {
     setEditing({ name: sourceDebt.name, isPrefill: true });
     setFormOpen(true);
@@ -127,15 +149,27 @@ export default function DataHutang() {
         title="Data Hutang"
         description="Kelola seluruh catatan hutang dengan pencarian, sortir, dan filter."
         actions={
-          <button
-            onClick={() => {
-              setEditing(null);
-              setFormOpen(true);
-            }}
-            className="btn-primary"
-          >
-            <Plus className="h-4 w-4" /> Tambah Hutang
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setImportOpen(true)}
+              className="btn-secondary"
+              title="Import banyak hutang dari teks"
+            >
+              <ClipboardPaste className="h-4 w-4" />
+              <span className="hidden sm:inline">Import</span>
+            </button>
+            <button
+              onClick={() => {
+                setEditing(null);
+                setFormOpen(true);
+              }}
+              className="btn-primary"
+            >
+              <Plus className="h-4 w-4" />
+              <span className="hidden sm:inline">Tambah Hutang</span>
+              <span className="sm:hidden">Tambah</span>
+            </button>
+          </div>
         }
       />
 
@@ -251,6 +285,12 @@ export default function DataHutang() {
         title={`Hapus hutang ${confirm?.name || ''}?`}
         description="Data yang dihapus tidak dapat dikembalikan."
         confirmLabel="Ya, hapus"
+      />
+
+      <ImportDebtsModal
+        open={importOpen}
+        onClose={() => setImportOpen(false)}
+        onImport={handleImport}
       />
     </div>
   );
