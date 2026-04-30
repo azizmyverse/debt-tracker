@@ -39,6 +39,27 @@ Username: admin
 Password: admin123
 ```
 
+### Database (optional — Supabase)
+
+Out of the box, data is persisted in `localStorage`. To sync across devices,
+connect a free Supabase project:
+
+1. Sign up at https://supabase.com → **New Project** (region: Singapore for Indonesia).
+2. Run [`supabase/schema.sql`](supabase/schema.sql) in the SQL Editor.
+3. Copy your **Project URL** and **anon public key** from Project Settings → API.
+4. Create a `.env` (or set in Vercel → Environment Variables):
+
+   ```bash
+   VITE_SUPABASE_URL=https://xxxxx.supabase.co
+   VITE_SUPABASE_ANON_KEY=eyJ...
+   ```
+
+5. Restart the dev server / redeploy. The Settings page will show a green
+   "Terhubung Supabase" badge.
+
+If env vars are missing or unreachable, the app gracefully falls back to
+`localStorage` so you can keep using it offline.
+
 ### Scripts
 
 | Script           | Description                  |
