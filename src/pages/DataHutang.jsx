@@ -8,7 +8,7 @@ import { SkeletonRow } from '../components/ui/Skeleton.jsx';
 import { useDebts } from '../context/DebtsContext.jsx';
 import { useToast } from '../context/ToastContext.jsx';
 import { cn } from '../utils/cn.js';
-import { formatRupiah, formatDateID } from '../utils/format.js';
+import { formatRupiah, daysUntil } from '../utils/format.js';
 
 export default function DataHutang() {
   const { debts, loading, addDebt, updateDebt, deleteDebt, toggleStatus } =
@@ -38,14 +38,22 @@ export default function DataHutang() {
     setFormOpen(true);
   };
 
+  const formatDuration = (debt) => {
+    if (debt.status === 'lunas') return 'Lunas';
+    const days = daysUntil(debt.dueDate);
+    if (days === null) return '-';
+    if (days === 0) return 'Hari ini';
+    if (days < 0) return `${Math.abs(days)} hari lewat`;
+    return `${days} hari lagi`;
+  };
+
   const handleCopyGroup = async (group) => {
+    const header = group.name.toUpperCase();
     const lines = group.debts.map(
       (d) =>
-        `${group.name} | ${formatRupiah(d.amount)} | ${formatDateID(
-          d.dueDate
-        )} ( ${d.bank} )`
+        `| ${formatDuration(d)} | ${formatRupiah(d.amount)} | ${d.bank}`
     );
-    const text = lines.join('\n');
+    const text = [header, ...lines].join('\n');
     try {
       if (navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(text);
