@@ -9,6 +9,9 @@ import {
   Mail,
   ShieldCheck,
   LogOut,
+  Database,
+  HardDrive,
+  CloudOff,
 } from 'lucide-react';
 import PageHeader from '../components/PageHeader.jsx';
 import { useTheme } from '../context/ThemeContext.jsx';
@@ -22,7 +25,7 @@ import { cn } from '../utils/cn.js';
 export default function Settings() {
   const { theme, setTheme } = useTheme();
   const { user, logout } = useAuth();
-  const { clearAll, resetSeed, stats } = useDebts();
+  const { clearAll, resetSeed, stats, usingRemote, remoteError } = useDebts();
   const toast = useToast();
   const navigate = useNavigate();
   const [confirmClear, setConfirmClear] = useState(false);
@@ -109,12 +112,35 @@ export default function Settings() {
         </div>
 
         <div className="card p-6 lg:col-span-3 animate-slide-up">
-          <h3 className="font-display font-semibold text-ink-900 dark:text-ink-50">
-            Manajemen Data
-          </h3>
-          <p className="text-sm text-ink-500 dark:text-ink-400 mt-0.5">
-            Total {stats.count} catatan disimpan secara lokal di browser kamu.
-          </p>
+          <div className="flex items-start justify-between gap-3 flex-wrap">
+            <div>
+              <h3 className="font-display font-semibold text-ink-900 dark:text-ink-50">
+                Manajemen Data
+              </h3>
+              <p className="text-sm text-ink-500 dark:text-ink-400 mt-0.5">
+                Total {stats.count} catatan tersimpan.
+              </p>
+            </div>
+            {usingRemote ? (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 px-3 py-1 text-xs font-medium">
+                <Database className="h-3.5 w-3.5" />
+                Terhubung Supabase
+              </span>
+            ) : remoteError ? (
+              <span
+                className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-300 px-3 py-1 text-xs font-medium"
+                title={remoteError}
+              >
+                <CloudOff className="h-3.5 w-3.5" />
+                Offline (localStorage)
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-ink-100 dark:bg-ink-800 text-ink-600 dark:text-ink-300 px-3 py-1 text-xs font-medium">
+                <HardDrive className="h-3.5 w-3.5" />
+                Local Only
+              </span>
+            )}
+          </div>
           <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
             <button
               onClick={() => setConfirmReset(true)}
