@@ -9,6 +9,7 @@ import {
 } from 'react';
 import { SEED_DEBTS } from '../data/seed.js';
 import { debtsApi, supabaseEnabled } from '../lib/supabase.js';
+import { useToast } from './ToastContext.jsx';
 
 const DebtsContext = createContext(null);
 
@@ -46,11 +47,21 @@ const saveLocal = (debts) => {
 };
 
 export const DebtsProvider = ({ children }) => {
+  const toast = useToast();
   const [debts, setDebts] = useState(() => (supabaseEnabled ? [] : loadLocal()));
   const [loading, setLoading] = useState(true);
   const [remoteError, setRemoteError] = useState(null);
   const [usingRemote, setUsingRemote] = useState(supabaseEnabled);
   const initRef = useRef(false);
+
+  const refetchRemote = useCallback(async () => {
+    try {
+      const list = await debtsApi.list();
+      setDebts(list);
+    } catch (err) {
+      console.error('Refetch failed:', err);
+    }
+  }, []);
 
   // Initial load: from Supabase if configured, else localStorage cache.
   useEffect(() => {
@@ -103,10 +114,10 @@ export const DebtsProvider = ({ children }) => {
     };
   }, []);
 
-  // Mirror to localStorage as offline cache.
+  // Mirror to localStorage only when not using a remote DB (DB is source of truth).
   useEffect(() => {
-    if (!loading) saveLocal(debts);
-  }, [debts, loading]);
+    if (!loading && !usingRemote) saveLocal(debts);
+  }, [debts, loading, usingRemote]);
 
   const addDebt = useCallback(
     async (data) => {
@@ -126,58 +137,79 @@ export const DebtsProvider = ({ children }) => {
           await debtsApi.insert(debt);
         } catch (err) {
           console.error('Supabase insert failed:', err);
+          setDebts((d) => d.filter((x) => x.id !== debt.id));
+          toast.error(
+            'Gagal menyimpan ke database',
+            err.message || 'Periksa Row Level Security policies di Supabase.'
+          );
         }
       }
       return debt;
     },
-    [usingRemote]
+    [usingRemote, toast]
   );
 
   const updateDebt = useCallback(
     async (id, patch) => {
-      setDebts((d) =>
-        d.map((it) =>
-          it.id === id
-            ? {
-                ...it,
-                ...patch,
-                amount:
-                  patch.amount !== undefined ? Number(patch.amount) : it.amount,
-              }
-            : it
-        )
-      );
+      let prev = null;
+      setDebts((d) => {
+        const next = d.map((it) => {
+          if (it.id !== id) return it;
+          prev = it;
+          return {
+            ...it,
+            ...patch,
+            amount:
+              patch.amount !== undefined ? Number(patch.amount) : it.amount,
+          };
+        });
+        return next;
+      });
       if (usingRemote) {
         try {
           await debtsApi.update(id, patch);
         } catch (err) {
           console.error('Supabase update failed:', err);
+          if (prev) {
+            setDebts((d) => d.map((it) => (it.id === id ? prev : it)));
+          }
+          toast.error('Gagal update database', err.message || 'Coba lagi.');
         }
       }
     },
-    [usingRemote]
+    [usingRemote, toast]
   );
 
   const deleteDebt = useCallback(
     async (id) => {
-      setDebts((d) => d.filter((it) => it.id !== id));
+      let removed = null;
+      setDebts((d) => {
+        removed = d.find((it) => it.id === id) || null;
+        return d.filter((it) => it.id !== id);
+      });
       if (usingRemote) {
         try {
           await debtsApi.remove(id);
         } catch (err) {
           console.error('Supabase delete failed:', err);
+          if (removed) {
+            setDebts((d) => [removed, ...d]);
+          }
+          toast.error('Gagal hapus dari database', err.message || 'Coba lagi.');
         }
       }
     },
-    [usingRemote]
+    [usingRemote, toast]
   );
 
   const toggleStatus = useCallback(
     async (id) => {
       let nextStatus = null;
+      let prevStatus = null;
       setDebts((d) =>
         d.map((it) => {
           if (it.id !== id) return it;
+          prevStatus = it.status;
           nextStatus = it.status === 'lunas' ? 'belum' : 'lunas';
           return { ...it, status: nextStatus };
         })
@@ -187,10 +219,14 @@ export const DebtsProvider = ({ children }) => {
           await debtsApi.update(id, { status: nextStatus });
         } catch (err) {
           console.error('Supabase toggle failed:', err);
+          setDebts((d) =>
+            d.map((it) => (it.id === id ? { ...it, status: prevStatus } : it))
+          );
+          toast.error('Gagal update status', err.message || 'Coba lagi.');
         }
       }
     },
-    [usingRemote]
+    [usingRemote, toast]
   );
 
   const clearAll = useCallback(async () => {
@@ -200,9 +236,11 @@ export const DebtsProvider = ({ children }) => {
         await debtsApi.clearAll();
       } catch (err) {
         console.error('Supabase clear failed:', err);
+        toast.error('Gagal hapus data di database', err.message || 'Coba lagi.');
+        await refetchRemote();
       }
     }
-  }, [usingRemote]);
+  }, [usingRemote, toast, refetchRemote]);
 
   const resetSeed = useCallback(async () => {
     const seeded = SEED_DEBTS.map((d) => ({ ...d, id: uid() }));
@@ -213,9 +251,11 @@ export const DebtsProvider = ({ children }) => {
         await debtsApi.bulkInsert(seeded);
       } catch (err) {
         console.error('Supabase seed reset failed:', err);
+        toast.error('Gagal reset data ke database', err.message || 'Coba lagi.');
+        await refetchRemote();
       }
     }
-  }, [usingRemote]);
+  }, [usingRemote, toast, refetchRemote]);
 
   const stats = useMemo(() => {
     const today = new Date();
